@@ -15,6 +15,7 @@ lib/Mojolicious/Command/Author/generate/automake_app/README.md
 lib/Mojolicious/Command/Author/generate/automake_app/bootstrap
 lib/Mojolicious/Command/Author/generate/automake_app/etc/app.cfg
 lib/Mojolicious/Command/Author/generate/automake_app/etc/Makefile.am
+lib/Mojolicious/Command/Author/generate/automake_app/t/basic.t
 lib/Mojolicious/Command/Author/generate/automake_app/COPYRIGHT
 lib/Mojolicious/Command/Author/generate/automake_app/CHANGES
 lib/Mojolicious/Command/Author/generate/automake_app/lib/App/Controller/Example.pm
