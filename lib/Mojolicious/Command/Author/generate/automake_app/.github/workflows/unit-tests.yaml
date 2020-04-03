@@ -109,10 +109,26 @@ jobs:
 % }          
           make test
       
-    - name: Dist
-      run: make dist
-      
-    - name: Rebuild
-      run: tar xf *.tar.gz
+    - name: Build Dist
+      run: |
+        make dist
+        tar xf *-$(cat VERSION).tar.gz
+        cd *-$(cat VERSION)
+        ./configure --prefix=$HOME/test-install
+        make
+% if ($package eq 'callbackery' ) {
+        cp etc/<%= $filename %>.dist.yaml  etc/<%= $filename %>.yaml
+% } else {
+        cp etc/<%= $filename %>.cfg.dist  etc/<%= $filename %>.cfg
+% }          
+        make test
+        make install
+        cd $HOME/test-install
+% if ($package eq 'callbackery' ) {
+        cp etc/<%= $filename %>.dist.yaml  etc/<%= $filename %>.yaml
+% } else {
+        cp etc/<%= $filename %>.cfg.dist  etc/<%= $filename %>.cfg
+% }          
+        ./bin/*.pl
       
   
