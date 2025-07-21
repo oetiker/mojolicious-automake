@@ -25,7 +25,7 @@ YEAR := $(shell date +%Y)
 DATE := $(shell date +%Y-%m-%d)
 
 dist-hook:
-	$(PERL) -i -p -e 's/#VERSION#/$(PACKAGE_VERSION)/g;s/#YEAR#/$(YEAR)/g;s/#DATE#/$(DATE)/g;' $(distdir)/../public/$(QX_CLASS)/*.js
+	$(PERL) -i -p -e 's/#VERSION#/$(PACKAGE_VERSION)/g;s/#YEAR#/$(YEAR)/g;s/#DATE#/$(DATE)/g;' $(distdir)/../public/$(QX_CLASS)/*.js $(distdir)/../public/index.html
 
 clean: node_modules
 	$(NPX) qx clean
