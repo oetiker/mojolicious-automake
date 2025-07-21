@@ -175,9 +175,8 @@ cat <<NOTES
 
 ** WARNING ***********************************************
 
-To run the qooxdoo compiler, at least node v10 is required.
-Use nvm to setup your local, up to date copy of node.
-Go to https://github.com/nvm-sh/nvm for futher information
+To run the qooxdoo compiler, at least node v$ac_node_version is required.
+Use mise to setup a local copy of node. https://mise.jdx.dev/
 
 NOTES
 fi
