@@ -1,5 +1,5 @@
 package <%= ${class} %>::GuiPlugin::Song;
-use Mojo::Base 'CallBackery::GuiPlugin::AbstractTable';
+use Mojo::Base 'CallBackery::GuiPlugin::AbstractTable', -async_await, -signatures;
 use CallBackery::Translate qw(trm);
 use CallBackery::Exception qw(mkerror);
 use Mojo::JSON qw(true false);
@@ -26,35 +26,33 @@ All the methods of L<CallBackery::GuiPlugin::AbstractTable> plus:
 =cut
 
 
-has screenOpts => sub {
-    my $self = shift;
+has screenOpts => sub ($self){
     my $opts = $self->SUPER::screenOpts;
     return {
         %%$opts,
         # an alternate layout for this screen
-        layout => {
-            class => 'qx.ui.layout.Dock',
-            set => {},
-        },
-        # and settings accordingly
-        container => {
-            set => {
-                # see https://www.qooxdoo.org/apps/apiviewer/#qx.ui.core.LayoutItem
-                # for inspiration in properties to set
-                maxWidth => 700,
-                maxHeight => 500,
-                alignX => 'left',
-                alignY => 'top',
-            },
-            addProps => {
-                edge => 'west'
-            }
-        }
+#         layout => {
+#             class => 'qx.ui.layout.Dock',
+#             set => {},
+#         },
+#         # and settings accordingly
+#         container => {
+#             set => {
+#                 # see https://www.qooxdoo.org/apps/apiviewer/#qx.ui.core.LayoutItem
+#                 # for inspiration in properties to set
+# #                maxWidth => 700,
+# #                maxHeight => 500,
+# #                alignX => 'left',
+# #                alignY => 'top',
+#             },
+#             addProps => {
+#                 edge => 'west'
+#             }
+#         }
     }
 };
 
-has formCfg => sub {
-    my $self = shift;
+has formCfg => sub ($self) {
     my $db = $self->user->db;
 
     return [
@@ -80,8 +78,7 @@ has formCfg => sub {
 
 =cut
 
-has tableCfg => sub {
-    my $self = shift;
+has tableCfg => sub ($self) {
     return [
         {
             label => trm('Id'),
@@ -157,8 +154,7 @@ Only users who can write get any actions presented.
 
 =cut
 
-has actionCfg => sub {
-    my $self = shift;
+has actionCfg => sub ($self) {
     return [] if $self->user and not $self->user->may('write');
 
     return [
@@ -166,7 +162,6 @@ has actionCfg => sub {
             label => trm('Add Song'),
             action => 'popup',
             addToContextMenu => false,
-            name => 'songFormAdd',
             key => 'add',
             popupTitle => trm('New Song'),
             set => {
@@ -189,7 +184,6 @@ has actionCfg => sub {
             addToContextMenu => true,
             defaultAction => true,
             key => 'edit',
-            name => 'songFormEdit',
             buttonSet => {
                 enabled => false,
             },
@@ -229,13 +223,11 @@ has actionCfg => sub {
     ];
 };
 
-sub db {
-    shift->user->mojoSqlDb;
+sub db ($self) {
+    $self->user->mojoSqlDb;
 };
 
-sub _getFilter {
-    my $self = shift;
-    my $search = shift;
+sub _getFilter ($self, $search) {
     my $filter = '';
     if ( $search ){
         $filter = "WHERE song_title LIKE ".$self->db->dbh->quote('%'.$search);
@@ -243,20 +235,16 @@ sub _getFilter {
     return $filter;
 }
 
-sub getTableRowCount {
-    my $self = shift;
-    my $args = shift;
+sub getTableRowCount ($self, $args) {
     my $filter = $self->_getFilter($args->{formData}{song_title});
     return $self->db->query("SELECT count(song_id) AS count FROM song $filter")->hash->{count};
 }
 
-sub getTableData {
-    my $self = shift;
-    my $args = shift;
+sub getTableData ($self, $args) {
     my $filter = $self->_getFilter($args->{formData}{song_title});
     my $SORT ='';
     if ($args->{sortColumn}){
-        $SORT = 'ORDER BY '.$self->dbh->quote_identifier($args->{sortColumn});
+        $SORT = 'ORDER BY '.$self->db->dbh->quote_identifier($args->{sortColumn});
         $SORT .= $args->{sortDesc} ? ' DESC' : ' ASC';
     }
     my $data = $self->db->query(<<"SQL",$args->{lastRow}-$args->{firstRow}+1,$args->{firstRow})->hashes;

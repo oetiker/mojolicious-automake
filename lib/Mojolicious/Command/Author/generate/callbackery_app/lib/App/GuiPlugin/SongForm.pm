@@ -1,18 +1,19 @@
 package <%= ${class} %>::GuiPlugin::SongForm;
-use Mojo::Base 'CallBackery::GuiPlugin::AbstractForm';
+use Mojo::Base 'CallBackery::GuiPlugin::AbstractForm', -async_await, -signatures;
 use CallBackery::Translate qw(trm);
 use CallBackery::Exception qw(mkerror);
 use Mojo::JSON qw(true false);
+use Mojo::Util qw(dumper);
 
 use POSIX qw(strftime);
 
 =head1 NAME
 
-<%= ${class} %>::GuiPlugin::SongForm - Song Edit Form
+LiveUi::GuiPlugin::SongForm - Song Edit Form
 
 =head1 SYNOPSIS
 
- use <%= ${class} %>::GuiPlugin::SongForm;
+ use LiveUi::GuiPlugin::SongForm;
 
 =head1 DESCRIPTION
 
@@ -41,8 +42,8 @@ my $voices = [
 ];
 
 my $decades = [
-    { tilte => '   ', key => '0' }, # The entry with key `0` appears first
-    { title => 'Sixites', key => '60s' },
+    { title => "Pick!", key => undef }, # The entry with key `0` appears first
+    { title => 'Sixties', key => '60s' },
     { title => 'Eighties', key => '80s' },
     { title => 'Nineties', key => '90s' },
     { title => 'Post Vinyl', key => '20+' },
@@ -58,10 +59,10 @@ while (@$voices){
     push @VOICES, $key;
 }
 
-has formCfg => sub {
-    my $self = shift;
+has formCfg => sub ($self){
     my $db = $self->user->db;
-
+    $self->log->debug("formCFG formPhase: ".$self->formPhase);
+    $self->log->debug("formCFG formData: ".dumper($self->formData));
     return [
         $self->config->{type} eq 'edit' ? {
             key => 'song_id',
@@ -112,7 +113,7 @@ has formCfg => sub {
             label             => trm('Addional Decade info'),
             widget            => 'text',
             reloadOnFormReset => true,
-            set               => $self->args->{currentFormData}{song_decade} ?  {
+            set               => $self->formData->{song_decade} ?  {
                 readOnly    => false,
                 placeholder => 'Type something extra',
             } : {
@@ -124,6 +125,11 @@ has formCfg => sub {
             key    => 'song_composer',
             label  => trm('Composer'),
             widget => 'text',
+            triggerFormReset => true,
+            set => {
+                liveUpdate => true, # update on every keystroke
+                # liveUpdateOnRxMatch => 'lvi', # update only if part of 'elvis' is typed
+            },
         },
         {
             key => 'song_page',
@@ -135,7 +141,11 @@ has formCfg => sub {
                     return "Expected a page Number";
                 }
                 return "";
+            },
+            set => {
+                visibility => $self->formData->{song_composer} =~ /elvis/ ? 'visible' : 'excluded',
             }
+            
         },
         {
             key => 'song_note',
@@ -149,8 +159,7 @@ has formCfg => sub {
     ];
 };
 
-has actionCfg => sub {
-    my $self = shift;
+has actionCfg => sub ($self) {
     my $type = $self->config->{type} // 'new';
 
     my $handler = sub {
@@ -183,8 +192,7 @@ has actionCfg => sub {
     ];
 };
 
-has grammar => sub {
-    my $self = shift;
+has grammar => sub ($self){
     $self->mergeGrammar(
         $self->SUPER::grammar,
         {
@@ -198,18 +206,17 @@ has grammar => sub {
     );
 };
 
-sub getAllFieldValues {
-    my $self = shift;
-    my $args = shift;
-    my $formData = shift;
-
+sub getAllFieldValues ($self,$parentForm, $formData,$frontendProps) {
+    $self->log->debug("getAllFieldValues parentForm : ".dumper($parentForm));
+    $self->log->debug("getAllFieldValues formData : ".dumper($formData));
+    $self->log->debug("getAllFieldValues frontendProps : ".dumper($frontendProps));
     # we can also update field values based on the current form data
-    if ($formData->{currentFormData}{song_decade} eq '20+' && !$formData->{currentFormData}{song_decade_addional}) {
+    if ($formData->{currentFormData}{song_decade} // '' eq '20+' and not $formData->{currentFormData}{song_decade_addional}) {
         return {song_decade_addional => 'We most certainly need more info here!'};
     }
     
     return {} if $self->config->{type} ne 'edit';
-    my $id = $args->{selection}{song_id};
+    my $id = $parentForm->{selection}{song_id};
     return {} unless $id;
 
     my $db = $self->user->db;
