@@ -1,7 +1,7 @@
 #  Copyright (C) <%= ${year} %> <%= ${fullName} %>
 
 AC_INIT([<%= ${filename} %>],m4_esyscmd([tr -d '\n' < VERSION]),[<%= ${email} %>])
-AC_PREREQ([2.59])
+AC_PREREQ([2.71])
 AC_CONFIG_AUX_DIR(conftools)
 
 MJ_CLASS=<%= ${class} %>
@@ -124,7 +124,7 @@ else
 fi
 
 AC_ARG_ENABLE(pkgonly,
-        AC_HELP_STRING([--enable-pkgonly],
+        AS_HELP_STRING([--enable-pkgonly],
                         [Skip all checking]))
 AC_SUBST(enable_pkgonly)
 

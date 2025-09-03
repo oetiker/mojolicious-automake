@@ -12,7 +12,7 @@ WriteMakefile(
   AUTHOR       => 'Tobias Oetiker <tobi@oetiker.ch>',
   LICENSE      => 'mit',
   PREREQ_PM    => {
-    'Mojolicious' => '8'
+    'Mojolicious' => '9'
   },
   BUILD_REQUIRES => {
     'CPAN::Uploader' => 0,
