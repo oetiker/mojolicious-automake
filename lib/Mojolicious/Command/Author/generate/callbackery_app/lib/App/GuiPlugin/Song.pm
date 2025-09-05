@@ -155,7 +155,7 @@ Only users who can write get any actions presented.
 =cut
 
 has actionCfg => sub ($self) {
-    return [] if $self->user and not $self->user->may('write');
+    return [] unless $self->user->may('write');
 
     return [
         {
